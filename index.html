@@ -340,7 +340,7 @@
             var logoSrc = local ? d.localLogoUrl : d.remoteLogoUrl;
             var bannerSrc = local ? d.localBannerUrl : d.remoteBannerUrl;
             return '' +
-            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="font-family:Arial,Helvetica,sans-serif;color:#1A2E3B;line-height:1.4;">' +
+            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1A2E3B;line-height:1.4;">' +
                 '<tr>' +
                     '<td colspan="2" style="padding-bottom:8px;">' +
                         '<b style="font-size:18px;color:#1A2E3B;">' + escHtml(d.fullName) + '</b><br>' +
@@ -389,7 +389,7 @@
                     '</td>' +
                 '</tr>' +
             '</table>' +
-            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">' +
+            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;font-family:Arial,Helvetica,sans-serif;">' +
                 '<tr>' +
                     '<td style="padding-top:6px;">' +
                         '<a href="' + escAttr(r.bannerLink) + '" style="color:#1A2E3B;text-decoration:none;">' +
@@ -407,7 +407,7 @@
             var logoSrc = local ? d.localLogoUrl : d.remoteLogoUrl;
             var bannerSrc = local ? d.localBannerUrl : d.remoteBannerUrl;
             return '' +
-            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="font-family:Arial,Helvetica,sans-serif;color:#1A2E3B;line-height:1.4;">' +
+            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;font-family:Arial,Helvetica,sans-serif;color:#1A2E3B;line-height:1.4;">' +
                 '<tr>' +
                     '<td width="400" colspan="2" style="padding-bottom:8px;">' +
                         '<b style="font-size:18px;color:#1A2E3B;">' + escHtml(d.fullName) + '</b><br>' +
@@ -468,7 +468,7 @@
                     '</td>' +
                 '</tr>' +
             '</table>' +
-            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">' +
+            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;font-family:Arial,Helvetica,sans-serif;">' +
                 '<tr>' +
                     '<td width="400" style="padding-top:6px;">' +
                         '<a href="' + escAttr(r.bannerLink) + '" style="color:#1A2E3B;text-decoration:none;">' +
@@ -483,31 +483,26 @@
             if (!currentData) return;
             var sigHtml = buildGmailSignature(currentData, false);
 
-            // Render signature offscreen for copying
-            var tmp = document.getElementById('appleMailTmp');
-            if (tmp) tmp.remove();
-            tmp = document.createElement('div');
-            tmp.id = 'appleMailTmp';
-            tmp.innerHTML = sigHtml;
-            tmp.style.position = 'fixed';
-            tmp.style.left = '-9999px';
-            tmp.style.top = '0';
-            tmp.style.background = 'transparent';
-            document.body.appendChild(tmp);
-
-            // Select and copy
-            var range = document.createRange();
-            range.selectNodeContents(tmp);
-            var sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(range);
-            document.execCommand('copy');
-            sel.removeAllRanges();
-            tmp.remove();
-
-            // Show feedback
             var btn = document.getElementById('btnAppleMail');
-            showCopied(btn);
+
+            // Use Clipboard API to copy raw HTML (no inherited page styles)
+            if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+                try {
+                    var item = new ClipboardItem({
+                        'text/html': new Blob([sigHtml], { type: 'text/html' }),
+                        'text/plain': new Blob([sigHtml], { type: 'text/plain' })
+                    });
+                    navigator.clipboard.write([item]).then(function() {
+                        showCopied(btn);
+                    }).catch(function() {
+                        fallbackCopy(sigHtml, btn);
+                    });
+                } catch (e) {
+                    fallbackCopy(sigHtml, btn);
+                }
+            } else {
+                fallbackCopy(sigHtml, btn);
+            }
 
             showInstructions('instrAppleMail');
         }
