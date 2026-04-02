@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VetzPetz Email Signature Generator</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f7fa;
+            color: #1A2E3B;
+            padding: 40px 20px;
+        }
+        .wrapper {
+            max-width: 520px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .form-card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 28px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #4a5568;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 15px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            color: #1A2E3B;
+            background: #fff;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59,130,246,0.15);
+        }
+        .email-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        .email-row input {
+            flex: 1;
+            margin-bottom: 0;
+            border-radius: 6px 0 0 6px;
+            border-right: none;
+        }
+        .email-suffix {
+            padding: 10px 12px;
+            font-size: 15px;
+            background: #f0f0f0;
+            border: 1px solid #d1d5db;
+            border-radius: 0 6px 6px 0;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+        .error-msg {
+            color: #dc2626;
+            font-size: 12px;
+            margin-top: -12px;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-primary {
+            background: #1A2E3B;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #2a4a5e; }
+        .btn-copy {
+            background: #e5e7eb;
+            color: #1A2E3B;
+            margin-bottom: 8px;
+        }
+        .btn-copy:hover { background: #d1d5db; }
+        .btn-copy.copied {
+            background: #16a34a;
+            color: #fff;
+        }
+        .preview-section {
+            background: #fff;
+            border-radius: 10px;
+            padding: 28px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+            display: none;
+        }
+        .preview-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 16px;
+        }
+        .preview-box {
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+        .copy-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .copy-buttons .btn-copy {
+            flex: 1;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <h1>VetzPetz Email Signature Generator</h1>
+
+        <div class="form-card">
+            <label for="fullName">Full Name</label>
+            <input type="text" id="fullName" placeholder="e.g. Jane Smith">
+            <div class="error-msg" id="err-fullName">Full name is required.</div>
+
+            <label for="jobTitle">Job Title</label>
+            <input type="text" id="jobTitle" placeholder="e.g. Marketing Manager">
+            <div class="error-msg" id="err-jobTitle">Job title is required.</div>
+
+            <label for="emailPrefix">Email</label>
+            <div class="email-row">
+                <input type="text" id="emailPrefix" placeholder="e.g. jane.smith">
+                <span class="email-suffix">@vetzpetz.com</span>
+            </div>
+            <div class="error-msg" id="err-emailPrefix">Enter a valid email prefix (no @ symbol).</div>
+
+            <label for="phone">Phone Number (with country code)</label>
+            <input type="text" id="phone" placeholder="e.g. +61 400 123 456">
+            <div class="error-msg" id="err-phone">Phone number is required.</div>
+
+            <label for="country">Country Label (optional)</label>
+            <input type="text" id="country" placeholder="e.g. Australia, UK, Thailand">
+
+            <label for="region">Region</label>
+            <select id="region">
+                <option value="au">Australia (AU)</option>
+                <option value="uk">United Kingdom (UK)</option>
+                <option value="th">Thailand (TH)</option>
+                <option value="gl">Global (GL)</option>
+            </select>
+
+            <button class="btn btn-primary" onclick="generate()">Generate Signature</button>
+        </div>
+
+        <div class="preview-section" id="previewSection">
+            <div class="preview-label">Live Preview</div>
+            <div class="preview-box" id="previewBox"></div>
+            <div class="copy-buttons">
+                <button class="btn btn-copy" id="btnGmail" onclick="copySignature('gmail')">Copy for Gmail</button>
+                <button class="btn btn-copy" id="btnAppleMail" onclick="showAppleMailSection()">Copy for Apple Mail</button>
+                <button class="btn btn-copy" id="btnOutlook" onclick="copySignature('outlook')">Copy for Outlook</button>
+            </div>
+            <div id="instrGmail" style="display:none;margin-top:12px;font-size:12px;line-height:1.8;color:#555;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:14px 18px;">
+                <strong style="font-size:13px;">Gmail Instructions</strong>
+                <ol style="margin:8px 0 0 0;padding-left:18px;">
+                    <li>Click <strong>"Copy for Gmail"</strong></li>
+                    <li>Open Gmail → click <strong>⚙️ → See all settings</strong></li>
+                    <li>Under <strong>General → Signature</strong></li>
+                    <li>Create a new signature or select an existing one</li>
+                    <li>Delete any existing content</li>
+                    <li>Paste (Cmd/Ctrl + V)</li>
+                    <li>Set under <strong>Signature defaults</strong></li>
+                    <li>Scroll down → <strong>Save Changes</strong></li>
+                </ol>
+            </div>
+            <div id="instrAppleMail" style="display:none;margin-top:12px;font-size:12px;line-height:1.8;color:#555;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:14px 18px;">
+                <strong style="font-size:13px;">Apple Mail Instructions</strong>
+                <ol style="margin:8px 0 0 0;padding-left:18px;">
+                    <li>Click <strong>"Copy for Apple Mail"</strong></li>
+                    <li>Open Mail → <strong>Mail (top menu) → Settings</strong></li>
+                    <li>Select your account (e.g. Google)</li>
+                    <li>Add a new signature (<strong>+</strong>) or select an existing one</li>
+                    <li>Uncheck <strong>"Always match my default message font"</strong></li>
+                    <li>Delete any existing content</li>
+                    <li>Paste (Cmd + V)</li>
+                    <li>Close Settings and test in a new email</li>
+                </ol>
+            </div>
+            <div id="instrOutlook" style="display:none;margin-top:12px;font-size:12px;line-height:1.8;color:#555;background:#fff;border:1px solid #e2e8f0;border-radius:6px;padding:14px 18px;">
+                <strong style="font-size:13px;">Outlook Instructions</strong>
+                <ol style="margin:8px 0 0 0;padding-left:18px;">
+                    <li>Click <strong>"Copy for Outlook"</strong></li>
+                    <li>Open Outlook → <strong>Outlook (top menu) → Settings</strong></li>
+                    <li>Go to <strong>Signature</strong></li>
+                    <li>Create a new signature or select an existing one</li>
+                    <li>Click <strong>Edit</strong></li>
+                    <li>Delete everything except <code>--</code></li>
+                    <li>Paste below <code>--</code></li>
+                    <li>Click <strong>Save</strong></li>
+                    <li>Set as default for <strong>New messages</strong> and <strong>Replies/Forwards</strong></li>
+                </ol>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        var REGIONS = {
+            au: {
+                label: 'AU',
+                website: 'https://vetzpetz.com.au',
+                bannerLink: 'https://vetzpetz.com.au/pages/60-day-risk-free-trial',
+                imageDir: 'au',
+                facebook: 'https://www.facebook.com/Antinol.au/',
+                instagram: 'https://www.instagram.com/antinol.au/',
+                websiteLink: 'https://vetzpetz.com.au'
+            },
+            uk: {
+                label: 'UK',
+                website: 'https://antinol.co.uk',
+                bannerLink: 'https://antinol.co.uk/pages/60-day-risk-free-trial',
+                imageDir: 'uk',
+                facebook: 'https://www.facebook.com/antinoluk/',
+                instagram: 'https://www.instagram.com/antinol_uk/',
+                websiteLink: 'https://antinol.co.uk'
+            },
+            th: {
+                label: 'TH',
+                website: 'https://vetzpetz.co.th',
+                bannerLink: 'https://vetzpetz.co.th/pages/new-to-antinol-choose',
+                imageDir: 'th',
+                facebook: 'https://www.facebook.com/antinolfordog/',
+                instagram: 'https://www.instagram.com/antinol.thailand/',
+                websiteLink: 'https://vetzpetz.co.th'
+            },
+            gl: {
+                label: 'GL',
+                website: 'https://vetzpetz.com',
+                bannerLink: 'https://vetzpetz.com.au/pages/60-day-risk-free-trial',
+                imageDir: 'global',
+                facebook: 'https://www.facebook.com/Antinol.au/',
+                instagram: 'https://www.instagram.com/antinol.au/',
+                websiteLink: 'https://vetzpetz.com.au'
+            }
+        };
+
+        // Remote URLs for copied signature (email clients need absolute URLs)
+        var REMOTE_ICONS = {
+            email: 'https://cdn.shopify.com/s/files/1/0306/2389/1595/files/Email.png?v=1626437139',
+            phone: 'https://cdn.shopify.com/s/files/1/0306/2389/1595/files/Phone.png?v=1626437139',
+            facebook: 'https://cdn.shopify.com/s/files/1/0306/2389/1595/files/Facebook.png?v=1626437139',
+            instagram: 'https://cdn.shopify.com/s/files/1/0306/2389/1595/files/Insta.png?v=1626437139',
+            web: 'https://cdn.shopify.com/s/files/1/0306/2389/1595/files/Web.png?v=1626437140'
+        };
+        var REMOTE_TAGLINE = 'https://cdn.shopify.com/s/files/1/0758/9209/7323/files/khim.png?v=1725946585';
+
+        // Local paths for preview rendering
+        var LOCAL_ICONS = {
+            email: 'images/icon-email.png',
+            phone: 'images/icon-phone.png',
+            facebook: 'images/icon-facebook.png',
+            instagram: 'images/icon-instagram.png',
+            web: 'images/icon-web.png'
+        };
+        var LOCAL_TAGLINE = 'images/tagline.png';
+
+        var currentData = null;
+
+        function validate() {
+            var valid = true;
+            var fields = ['fullName', 'jobTitle', 'emailPrefix', 'phone'];
+            for (var i = 0; i < fields.length; i++) {
+                var el = document.getElementById(fields[i]);
+                var err = document.getElementById('err-' + fields[i]);
+                err.style.display = 'none';
+                if (!el.value.trim()) {
+                    err.style.display = 'block';
+                    valid = false;
+                }
+            }
+            var prefix = document.getElementById('emailPrefix').value.trim();
+            if (prefix && prefix.indexOf('@') !== -1) {
+                document.getElementById('err-emailPrefix').textContent = 'Email prefix must not contain @.';
+                document.getElementById('err-emailPrefix').style.display = 'block';
+                valid = false;
+            }
+            return valid;
+        }
+
+        function generate() {
+            if (!validate()) return;
+
+            var regionKey = document.getElementById('region').value;
+            var r = REGIONS[regionKey];
+
+            currentData = {
+                fullName: document.getElementById('fullName').value.trim(),
+                jobTitle: document.getElementById('jobTitle').value.trim(),
+                email: document.getElementById('emailPrefix').value.trim() + '@vetzpetz.com',
+                phone: document.getElementById('phone').value.trim(),
+                country: document.getElementById('country').value.trim(),
+                region: r,
+                regionKey: regionKey,
+                remoteLogoUrl: 'https://cdn.shopify.com/s/files/1/0758/9209/7323/files/VP_PH.png?v=1775104920',
+                remoteBannerUrl: 'https://cdn.shopify.com/s/files/1/0758/9209/7323/files/240910_EmailSig_764x158px_Export.gif?v=1725943180',
+                localLogoUrl: 'images/logo.png',
+                localBannerUrl: 'images/banner.gif'
+            };
+
+            var html = buildGmailSignature(currentData, true);
+            document.getElementById('previewBox').innerHTML = html;
+            document.getElementById('previewSection').style.display = 'block';
+        }
+
+        function buildGmailSignature(d, local) {
+            var r = d.region;
+            var icons = local ? LOCAL_ICONS : REMOTE_ICONS;
+            var tagline = local ? LOCAL_TAGLINE : REMOTE_TAGLINE;
+            var logoSrc = local ? d.localLogoUrl : d.remoteLogoUrl;
+            var bannerSrc = local ? d.localBannerUrl : d.remoteBannerUrl;
+            return '' +
+            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="font-family:Arial,Helvetica,sans-serif;color:#1A2E3B;line-height:1.4;">' +
+                '<tr>' +
+                    '<td colspan="2" style="padding-bottom:8px;">' +
+                        '<b style="font-size:18px;color:#1A2E3B;">' + escHtml(d.fullName) + '</b><br>' +
+                        '<span style="font-size:14px;color:#1A2E3B;">' + escHtml(d.jobTitle) + (d.country ? ' - ' + escHtml(d.country) : '') + '</span>' +
+                    '</td>' +
+                '</tr>' +
+                '<tr>' +
+                    '<td width="175" align="center" valign="top" style="padding-right:10px;">' +
+                        '<a href="' + escAttr(r.website) + '" style="color:#1A2E3B;text-decoration:none;">' +
+                            '<img width="170" src="' + escAttr(logoSrc) + '" alt="VetzPetz Logo" style="display:block;border:none;">' +
+                        '</a>' +
+                    '</td>' +
+                    '<td width="225" valign="top">' +
+                        '<table width="225" cellspacing="0" cellpadding="0" border="0">' +
+                            '<tr>' +
+                                '<td style="padding-bottom:8px;">' +
+                                    '<img width="193" src="' + escAttr(tagline) + '" alt="Antinol" style="display:block;border:none;">' +
+                                '</td>' +
+                            '</tr>' +
+                            '<tr>' +
+                                '<td style="font-size:14px;padding-bottom:4px;">' +
+                                    '<img width="15" height="15" src="' + escAttr(icons.email) + '" alt="" style="border:none;vertical-align:middle;padding-bottom:2px;width:15px;height:15px;">' +
+                                    '&nbsp;<a href="mailto:' + escAttr(d.email) + '" style="color:#1A2E3B;text-decoration:none;">' + escHtml(d.email) + '</a>' +
+                                '</td>' +
+                            '</tr>' +
+                            '<tr>' +
+                                '<td style="font-size:14px;padding-bottom:6px;">' +
+                                    '<img width="15" height="15" src="' + escAttr(icons.phone) + '" alt="" style="border:none;vertical-align:middle;padding-bottom:2px;width:15px;height:15px;">' +
+                                    '&nbsp;<a href="tel:' + escAttr(d.phone.replace(/\s/g, '')) + '" style="color:#1A2E3B;text-decoration:none;">' + escHtml(d.phone) + '</a>' +
+                                '</td>' +
+                            '</tr>' +
+                            '<tr>' +
+                                '<td style="padding-top:2px;">' +
+                                    '<a href="' + escAttr(r.facebook) + '" style="color:#1A2E3B;text-decoration:none;display:inline-block;">' +
+                                        '<img width="20" height="20" src="' + escAttr(icons.facebook) + '" alt="Facebook" style="border:none;vertical-align:middle;padding-right:2px;width:20px;height:20px;">' +
+                                    '</a>' +
+                                    '<a href="' + escAttr(r.instagram) + '" style="color:#1A2E3B;text-decoration:none;display:inline-block;">' +
+                                        '<img width="20" height="20" src="' + escAttr(icons.instagram) + '" alt="Instagram" style="border:none;vertical-align:middle;padding-right:2px;width:20px;height:20px;">' +
+                                    '</a>' +
+                                    '<a href="' + escAttr(r.websiteLink) + '" style="color:#1A2E3B;text-decoration:none;display:inline-block;">' +
+                                        '<img width="20" height="20" src="' + escAttr(icons.web) + '" alt="Website" style="border:none;vertical-align:middle;width:20px;height:20px;">' +
+                                    '</a>' +
+                                '</td>' +
+                            '</tr>' +
+                        '</table>' +
+                    '</td>' +
+                '</tr>' +
+            '</table>' +
+            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">' +
+                '<tr>' +
+                    '<td style="padding-top:6px;">' +
+                        '<a href="' + escAttr(r.bannerLink) + '" style="color:#1A2E3B;text-decoration:none;">' +
+                            '<img width="400" src="' + escAttr(bannerSrc) + '" alt="VetzPetz Banner" style="display:block;border:none;">' +
+                        '</a>' +
+                    '</td>' +
+                '</tr>' +
+            '</table>';
+        }
+
+        function buildOutlookSignature(d, local) {
+            var r = d.region;
+            var icons = local ? LOCAL_ICONS : REMOTE_ICONS;
+            var tagline = local ? LOCAL_TAGLINE : REMOTE_TAGLINE;
+            var logoSrc = local ? d.localLogoUrl : d.remoteLogoUrl;
+            var bannerSrc = local ? d.localBannerUrl : d.remoteBannerUrl;
+            return '' +
+            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="font-family:Arial,Helvetica,sans-serif;color:#1A2E3B;line-height:1.4;">' +
+                '<tr>' +
+                    '<td width="400" colspan="2" style="padding-bottom:8px;">' +
+                        '<b style="font-size:18px;color:#1A2E3B;">' + escHtml(d.fullName) + '</b><br>' +
+                        '<span style="font-size:14px;color:#1A2E3B;">' + escHtml(d.jobTitle) + (d.country ? ' - ' + escHtml(d.country) : '') + '</span>' +
+                    '</td>' +
+                '</tr>' +
+                '<tr>' +
+                    '<td width="175" align="center" valign="top" style="padding-right:10px;">' +
+                        '<a href="' + escAttr(r.website) + '" style="color:#1A2E3B;text-decoration:none;">' +
+                            '<img width="170" src="' + escAttr(logoSrc) + '" alt="VetzPetz Logo" style="display:block;border:none;">' +
+                        '</a>' +
+                    '</td>' +
+                    '<td width="225" valign="top">' +
+                        '<table width="225" cellspacing="0" cellpadding="0" border="0">' +
+                            '<tr><td width="225" style="padding-bottom:8px;">' +
+                                '<img width="190" src="' + escAttr(tagline) + '" alt="Antinol" style="display:block;border:none;">' +
+                            '</td></tr>' +
+                            '<tr><td width="225" style="padding-bottom:4px;">' +
+                                '<table width="225" cellspacing="0" cellpadding="0" border="0">' +
+                                    '<tr>' +
+                                        '<td width="20" valign="middle" style="padding-bottom:2px;">' +
+                                            '<img width="15" height="15" src="' + escAttr(icons.email) + '" alt="" style="display:block;border:none;width:15px;height:15px;">' +
+                                        '</td>' +
+                                        '<td width="205" valign="middle" style="font-size:14px;padding-bottom:2px;">' +
+                                            '<a href="mailto:' + escAttr(d.email) + '" style="color:#1A2E3B;text-decoration:none;">' + escHtml(d.email) + '</a>' +
+                                        '</td>' +
+                                    '</tr>' +
+                                    '<tr>' +
+                                        '<td width="20" valign="middle" style="padding-bottom:2px;">' +
+                                            '<img width="15" height="15" src="' + escAttr(icons.phone) + '" alt="" style="display:block;border:none;width:15px;height:15px;">' +
+                                        '</td>' +
+                                        '<td width="205" valign="middle" style="font-size:14px;padding-bottom:2px;">' +
+                                            '<a href="tel:' + escAttr(d.phone.replace(/\s/g, '')) + '" style="color:#1A2E3B;text-decoration:none;">' + escHtml(d.phone) + '</a>' +
+                                        '</td>' +
+                                    '</tr>' +
+                                '</table>' +
+                            '</td></tr>' +
+                            '<tr><td width="225" style="padding-top:2px;">' +
+                                '<table cellspacing="0" cellpadding="0" border="0"><tr>' +
+                                    '<td width="24" style="padding-right:2px;">' +
+                                        '<a href="' + escAttr(r.facebook) + '" style="color:#1A2E3B;text-decoration:none;">' +
+                                            '<img width="20" height="20" src="' + escAttr(icons.facebook) + '" alt="Facebook" style="display:block;border:none;width:20px;height:20px;">' +
+                                        '</a>' +
+                                    '</td>' +
+                                    '<td width="24" style="padding-right:2px;">' +
+                                        '<a href="' + escAttr(r.instagram) + '" style="color:#1A2E3B;text-decoration:none;">' +
+                                            '<img width="20" height="20" src="' + escAttr(icons.instagram) + '" alt="Instagram" style="display:block;border:none;width:20px;height:20px;">' +
+                                        '</a>' +
+                                    '</td>' +
+                                    '<td width="22">' +
+                                        '<a href="' + escAttr(r.websiteLink) + '" style="color:#1A2E3B;text-decoration:none;">' +
+                                            '<img width="20" height="20" src="' + escAttr(icons.web) + '" alt="Website" style="display:block;border:none;width:20px;height:20px;">' +
+                                        '</a>' +
+                                    '</td>' +
+                                '</tr></table>' +
+                            '</td></tr>' +
+                        '</table>' +
+                    '</td>' +
+                '</tr>' +
+            '</table>' +
+            '<table width="400" cellspacing="0" cellpadding="0" border="0" style="font-family:Arial,Helvetica,sans-serif;">' +
+                '<tr>' +
+                    '<td width="400" style="padding-top:6px;">' +
+                        '<a href="' + escAttr(r.bannerLink) + '" style="color:#1A2E3B;text-decoration:none;">' +
+                            '<img width="400" src="' + escAttr(bannerSrc) + '" alt="VetzPetz Banner" style="display:block;border:none;">' +
+                        '</a>' +
+                    '</td>' +
+                '</tr>' +
+            '</table>';
+        }
+
+        function showAppleMailSection() {
+            if (!currentData) return;
+            var sigHtml = buildGmailSignature(currentData, false);
+
+            // Render signature offscreen for copying
+            var tmp = document.getElementById('appleMailTmp');
+            if (tmp) tmp.remove();
+            tmp = document.createElement('div');
+            tmp.id = 'appleMailTmp';
+            tmp.innerHTML = sigHtml;
+            tmp.style.position = 'fixed';
+            tmp.style.left = '-9999px';
+            tmp.style.top = '0';
+            document.body.appendChild(tmp);
+
+            // Select and copy
+            var range = document.createRange();
+            range.selectNodeContents(tmp);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            document.execCommand('copy');
+            sel.removeAllRanges();
+            tmp.remove();
+
+            // Show feedback
+            var btn = document.getElementById('btnAppleMail');
+            showCopied(btn);
+
+            showInstructions('instrAppleMail');
+        }
+
+        function showInstructions(id) {
+            var all = ['instrGmail', 'instrAppleMail', 'instrOutlook'];
+            for (var i = 0; i < all.length; i++) {
+                document.getElementById(all[i]).style.display = all[i] === id ? 'block' : 'none';
+            }
+        }
+
+        function copySignature(type) {
+            if (!currentData) return;
+
+            var html;
+            var btnId;
+            if (type === 'outlook') {
+                html = buildOutlookSignature(currentData, false);
+                btnId = 'btnOutlook';
+            } else {
+                html = buildGmailSignature(currentData, false);
+                btnId = type === 'gmail' ? 'btnGmail' : 'btnAppleMail';
+            }
+            var btn = document.getElementById(btnId);
+            var instrId = type === 'gmail' ? 'instrGmail' : 'instrOutlook';
+            showInstructions(instrId);
+
+            // Use Clipboard API with text/html blob
+            // Safari requires ClipboardItem to be constructed synchronously in the click handler
+            if (navigator.clipboard && typeof ClipboardItem !== 'undefined') {
+                try {
+                    var item = new ClipboardItem({
+                        'text/html': new Blob([html], { type: 'text/html' }),
+                        'text/plain': new Blob([html], { type: 'text/plain' })
+                    });
+                    navigator.clipboard.write([item]).then(function() {
+                        showCopied(btn);
+                    }).catch(function() {
+                        fallbackCopy(html, btn);
+                    });
+                } catch (e) {
+                    fallbackCopy(html, btn);
+                }
+            } else {
+                fallbackCopy(html, btn);
+            }
+        }
+
+        function fallbackCopy(html, btn) {
+            // Fallback: create a temporary element, render HTML, select and copy
+            var tmp = document.createElement('div');
+            tmp.contentEditable = 'true';
+            tmp.innerHTML = html;
+            tmp.style.position = 'fixed';
+            tmp.style.left = '-9999px';
+            tmp.style.top = '0';
+            tmp.style.opacity = '0';
+            document.body.appendChild(tmp);
+            tmp.focus();
+
+            var range = document.createRange();
+            range.selectNodeContents(tmp);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            var ok = false;
+            try {
+                ok = document.execCommand('copy');
+            } catch (e) {
+                ok = false;
+            }
+
+            sel.removeAllRanges();
+            document.body.removeChild(tmp);
+
+            if (ok) {
+                showCopied(btn);
+            } else {
+                alert('Copy failed. Please try again or use a different browser.');
+            }
+        }
+
+        function showCopied(btn, msg) {
+            var orig = btn.textContent;
+            btn.textContent = msg || 'Copied!';
+            btn.classList.add('copied');
+            setTimeout(function () {
+                btn.textContent = orig;
+                btn.classList.remove('copied');
+            }, 2000);
+        }
+
+        function escHtml(s) {
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(s));
+            return d.innerHTML;
+        }
+
+        function escAttr(s) {
+            return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+    </script>
+</body>
+</html>
