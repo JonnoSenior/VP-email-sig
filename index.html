@@ -336,7 +336,6 @@
         function buildGmailSignature(d, local) {
             var r = d.region;
             var icons = local ? LOCAL_ICONS : REMOTE_ICONS;
-            var tagline = local ? LOCAL_TAGLINE : REMOTE_TAGLINE;
             var logoSrc = local ? d.localLogoUrl : d.remoteLogoUrl;
             var bannerSrc = local ? d.localBannerUrl : d.remoteBannerUrl;
             return '' +
@@ -355,11 +354,6 @@
                     '</td>' +
                     '<td width="225" valign="top">' +
                         '<table width="225" cellspacing="0" cellpadding="0" border="0">' +
-                            '<tr>' +
-                                '<td style="padding-bottom:8px;">' +
-                                    '<img width="193" src="' + escAttr(tagline) + '" alt="Antinol" style="display:block;border:none;">' +
-                                '</td>' +
-                            '</tr>' +
                             '<tr>' +
                                 '<td style="font-size:14px;padding-bottom:4px;">' +
                                     '<img width="15" height="15" src="' + escAttr(icons.email) + '" alt="" style="border:none;vertical-align:middle;padding-bottom:2px;width:15px;height:15px;">' +
@@ -422,9 +416,6 @@
                     '</td>' +
                     '<td width="225" valign="top">' +
                         '<table width="225" cellspacing="0" cellpadding="0" border="0">' +
-                            '<tr><td width="225" style="padding-bottom:8px;">' +
-                                '<img width="190" src="' + escAttr(tagline) + '" alt="Antinol" style="display:block;border:none;">' +
-                            '</td></tr>' +
                             '<tr><td width="225" style="padding-bottom:4px;">' +
                                 '<table width="225" cellspacing="0" cellpadding="0" border="0">' +
                                     '<tr>' +
